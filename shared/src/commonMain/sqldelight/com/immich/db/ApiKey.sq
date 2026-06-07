@@ -1,0 +1,21 @@
+CREATE TABLE api_key (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    key_hash TEXT NOT NULL,
+    permissions TEXT NOT NULL DEFAULT 'all',
+    created_at INTEGER NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX idx_api_key_user ON api_key(user_id);
+
+selectByHash:
+SELECT * FROM api_key WHERE key_hash = ?;
+
+insert:
+INSERT INTO api_key (id, user_id, name, key_hash, permissions, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+delete:
+DELETE FROM api_key WHERE id = ?;
