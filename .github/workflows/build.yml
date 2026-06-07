@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  android:
+  android-modern:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,13 +17,31 @@ jobs:
           distribution: 'temurin'
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-      - name: Build Android
-        run: ./gradlew :androidApp:assembleDebug
-      - name: Upload Android APK
+      - name: Build Android Modern (minSdk 21, Compose UI)
+        run: ./gradlew :androidApp:assembleModernDebug
+      - name: Upload Android Modern APK
         uses: actions/upload-artifact@v4
         with:
-          name: android-debug-apk
-          path: androidApp/build/outputs/apk/debug/*.apk
+          name: android-modern-debug-apk
+          path: androidApp/build/outputs/apk/modern/debug/*.apk
+
+  android-legacy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Build Android Legacy (minSdk 16, XML UI)
+        run: ./gradlew :androidApp:assembleLegacyDebug
+      - name: Upload Android Legacy APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-legacy-debug-apk
+          path: androidApp/build/outputs/apk/legacy/debug/*.apk
 
   jvm:
     runs-on: ubuntu-latest
@@ -33,7 +51,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Build JVM
+      - name: Build JVM Minimal
         run: ./gradlew :minimal:build
       - name: Upload JVM Jar
         uses: actions/upload-artifact@v4

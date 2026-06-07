@@ -11,7 +11,7 @@ import com.immich.server.service.AuthService
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
+import io.ktor.server.cio.CIO
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.statuspages.StatusPages
@@ -42,7 +42,7 @@ class ImmichServer(
         notification.createNotificationChannel()
         notification.showNotification("Immich Server", "Server starting on port $port")
 
-        server = embeddedServer(Netty, port = port) {
+        server = embeddedServer(CIO, port = port) {
             install(ContentNegotiation) {
                 json(Json {
                     prettyPrint = true

@@ -5,7 +5,9 @@ Cross-platform Immich-compatible photo backup server.
 ## Overview
 
 This project implements a lightweight, Immich API-compatible server that runs on multiple platforms:
-- **Android** (API 21+): Native APK with Compose UI
+- **Android** (API 16+): Native APK with two UI variants
+  - **Modern** (API 21+): Jetpack Compose UI
+  - **Legacy** (API 16+): Traditional XML UI
 - **iOS**: Framework for integration with SwiftUI
 - **JVM/Desktop**: Command-line minimal version
 
@@ -14,15 +16,15 @@ This project implements a lightweight, Immich API-compatible server that runs on
 ```
 immich-server/
 ├── shared/              ← Core shared code (Kotlin Multiplatform)
-│   ├── api/             ← Ktor REST API routes
+│   ├── api/             ← Ktor REST API routes (CIO engine, no native deps)
 │   ├── model/           ← Data models (kotlinx.serialization)
 │   ├── service/         ← Business logic
-│   ├── db/              ← SQLDelight database
+│   ├── db/              ← SQLDelight database (cross-platform SQLite)
 │   └── platform/        ← Platform abstractions (expect/actual)
 │
 ├── androidApp/          ← Android application
-│   ├── Compose UI
-│   └── Foreground Service
+│   ├── modern/          ← Compose UI (API 21+, Android 5.0+)
+│   └── legacy/          ← XML UI (API 16+, Android 4.1+)
 │
 ├── iosApp/              ← iOS application (SwiftUI)
 │
@@ -33,9 +35,17 @@ immich-server/
 
 - **API Compatible**: Implements core Immich REST API
 - **Cross-Platform**: Share 90%+ code across platforms
+- **Ultra-Low Android**: Supports Android 4.1 (API 16) via Ktor CIO engine
 - **SQLite Database**: SQLDelight for type-safe SQL
 - **File Storage**: Platform-specific file management
 - **Background Service**: Keep server running
+
+## Android Build Variants
+
+| Variant | Min SDK | UI | Engine | Output |
+|---------|:-------:|:---:|:------:|--------|
+| **modernDebug** | 21 (5.0) | Compose | Ktor CIO | `app-modern-debug.apk` |
+| **legacyDebug** | 16 (4.1) | XML | Ktor CIO | `app-legacy-debug.apk` |
 
 ## Implemented APIs
 
@@ -59,9 +69,14 @@ immich-server/
 
 ## Building
 
-### Android
+### Android Modern (Compose UI, API 21+)
 ```bash
-./gradlew :androidApp:assembleDebug
+./gradlew :androidApp:assembleModernDebug
+```
+
+### Android Legacy (XML UI, API 16+)
+```bash
+./gradlew :androidApp:assembleLegacyDebug
 ```
 
 ### JVM (Minimal)
@@ -77,7 +92,7 @@ immich-server/
 ## Usage
 
 ### Android
-1. Install APK
+1. Install APK (modern or legacy variant)
 2. Open app, tap "Start Server"
 3. Connect with Immich app using displayed URL
 

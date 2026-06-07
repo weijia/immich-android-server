@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.immich.server.android"
-        minSdk = 21
+        minSdk = 16
         targetSdk = 34
         versionCode = 1
         versionName = "0.1.0"
@@ -22,6 +22,22 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+    }
+
+    flavorDimensions = "ui"
+
+    productFlavors {
+        // Modern: Compose UI, minSdk 21 (Android 5.0+)
+        create("modern") {
+            minSdk = 21
+            versionNameSuffix = "-modern"
+            isDefault = true
+        }
+        // Legacy: XML UI, minSdk 16 (Android 4.1+)
+        create("legacy") {
+            minSdk = 16
+            versionNameSuffix = "-legacy"
         }
     }
 
@@ -48,11 +64,16 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime)
-    implementation(libs.androidx.activity.compose)
-
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.material3)
-
     implementation(libs.kotlinx.coroutines.core)
+
+    // Modern flavor: Compose UI
+    "modernImplementation"(libs.androidx.activity.compose)
+    "modernImplementation"(platform(libs.androidx.compose.bom))
+    "modernImplementation"(libs.androidx.compose.ui)
+    "modernImplementation"(libs.androidx.compose.material3)
+
+    // Legacy flavor: AppCompat for XML UI
+    "legacyImplementation"("androidx.appcompat:appcompat:1.6.1")
+    "legacyImplementation"("com.google.android.material:material:1.11.0")
+    "legacyImplementation"("androidx.constraintlayout:constraintlayout:2.1.4")
 }
