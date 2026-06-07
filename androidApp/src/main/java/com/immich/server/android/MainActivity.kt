@@ -41,6 +41,7 @@ class MainActivity : ComponentActivity() {
 fun ServerControlScreen() {
     val app = ImmichServerApplication.instance
     var serverStatus by remember { mutableStateOf(if (app.server.isRunning()) "Running" else "Stopped") }
+    var serverUrl by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -66,6 +67,14 @@ fun ServerControlScreen() {
             style = MaterialTheme.typography.bodyMedium
         )
 
+        if (serverUrl.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Server URL: $serverUrl",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
@@ -73,9 +82,11 @@ fun ServerControlScreen() {
                 if (app.server.isRunning()) {
                     app.server.stop()
                     serverStatus = "Stopped"
+                    serverUrl = ""
                 } else {
                     app.server.start()
                     serverStatus = "Running"
+                    serverUrl = app.server.getServerUrl()
                 }
             }
         ) {
@@ -85,7 +96,19 @@ fun ServerControlScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Connect with Immich app at http://<device-ip>:2283",
+            text = if (serverUrl.isNotEmpty()) {
+                "Connect with Immich app at $serverUrl"
+            } else {
+                "Start server to see connection URL"
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Or use auto-discovery (UDP broadcast on port 2284)",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

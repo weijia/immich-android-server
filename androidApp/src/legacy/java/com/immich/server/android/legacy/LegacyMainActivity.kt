@@ -17,6 +17,7 @@ import com.immich.server.android.R
 class LegacyMainActivity : AppCompatActivity() {
 
     private lateinit var statusText: TextView
+    private lateinit var urlText: TextView
     private lateinit var toggleButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,6 +25,7 @@ class LegacyMainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         statusText = findViewById(R.id.statusText)
+        urlText = findViewById(R.id.urlText)
         toggleButton = findViewById(R.id.toggleButton)
 
         updateStatus()
@@ -51,6 +53,13 @@ class LegacyMainActivity : AppCompatActivity() {
         val isRunning = app.server.isRunning()
         statusText.text = "Status: ${if (isRunning) "Running" else "Stopped"}"
         toggleButton.text = if (isRunning) "Stop Server" else "Start Server"
+
+        if (isRunning) {
+            val url = app.server.getServerUrl()
+            urlText.text = "URL: $url\nAuto-discovery: UDP port 2284"
+        } else {
+            urlText.text = "Start server to see connection URL"
+        }
     }
 
     private fun startLegacyService() {

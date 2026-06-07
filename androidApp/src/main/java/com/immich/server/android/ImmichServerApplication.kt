@@ -2,6 +2,7 @@ package com.immich.server.android
 
 import android.app.Application
 import com.immich.server.ImmichServer
+import com.immich.server.platform.NetworkUtils
 import com.immich.server.platform.PlatformDatabaseDriverFactory
 import com.immich.server.platform.PlatformFileStorage
 import com.immich.server.platform.PlatformNotification
@@ -13,6 +14,10 @@ class ImmichServerApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
+
+        // Initialize network utilities for IP detection
+        NetworkUtils.initialize(this)
 
         val driverFactory = PlatformDatabaseDriverFactory(this)
         val fileStorage = PlatformFileStorage(this)
