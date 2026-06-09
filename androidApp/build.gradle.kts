@@ -34,9 +34,9 @@ android {
             versionNameSuffix = "-modern"
             isDefault = true
         }
-        // Legacy: XML UI, minSdk 16 (Android 4.1+)
+        // Legacy: XML UI, minSdk 21 (Android 5.0+)
         create("legacy") {
-            minSdk = 16
+            minSdk = 21
             versionNameSuffix = "-legacy"
         }
     }
