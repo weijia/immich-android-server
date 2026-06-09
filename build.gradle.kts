@@ -8,13 +8,8 @@ plugins {
 }
 
 subprojects {
-    configurations.all {
-        resolutionStrategy {
-            // Force guava-android to avoid conflict between guava-jre (from ktor/jwks-rsa)
-            // and listenablefuture:1.0 (from androidx)
-            force("com.google.guava:guava:32.1.1-android")
-            // Exclude guava-jre from transitive dependencies
-            exclude(group = "com.google.guava", module = "guava-jre")
-        }
+    configurations.configureEach {
+        exclude(group = "com.google.guava", module = "guava")
+        exclude(group = "com.google.guava", module = "guava-jre")
     }
 }

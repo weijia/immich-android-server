@@ -30,12 +30,8 @@ kotlin {
                 implementation(libs.ktor.server.cio)
                 implementation(libs.ktor.server.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
-                implementation(libs.ktor.server.auth) {
-                    exclude(group = "com.google.guava", module = "guava")
-                }
-                implementation(libs.ktor.server.auth.jwt) {
-                    exclude(group = "com.google.guava", module = "guava")
-                }
+                implementation(libs.ktor.server.auth)
+                implementation(libs.ktor.server.auth.jwt)
                 implementation(libs.ktor.server.status.pages)
                 implementation(libs.ktor.server.cors)
 
