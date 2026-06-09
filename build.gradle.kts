@@ -6,3 +6,11 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.sqldelight) apply false
 }
+
+subprojects {
+    configurations.all {
+        resolutionStrategy {
+            force("com.google.guava:guava:32.1.1-android")
+        }
+    }
+}
