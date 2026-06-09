@@ -59,6 +59,13 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        force("com.google.guava:guava:32.1.1-android")
+        force("com.google.guava:listenablefuture:1.0")
+    }
+}
+
 dependencies {
     implementation(project(":shared"))
 
