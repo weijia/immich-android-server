@@ -2,6 +2,7 @@
 agp = "8.3.0"
 kotlin = "1.9.22"
 coroutines = "1.7.3"
+datetime = "0.5.0"
 ktor = "2.3.8"
 sqldelight = "2.0.1"
 serialization = "1.6.2"
@@ -15,6 +16,7 @@ junit = "4.13.2"
 # Kotlin
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 
 # Ktor Server (shared)
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
@@ -25,6 +27,7 @@ ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
+ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
 
 # Ktor Client (for testing)
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }

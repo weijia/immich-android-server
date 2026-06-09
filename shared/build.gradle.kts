@@ -24,6 +24,7 @@ kotlin {
                 // Kotlin
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.serialization.json)
+                implementation(libs.kotlinx.datetime)
 
                 // Ktor Server
                 implementation(libs.ktor.server.core)
@@ -34,6 +35,7 @@ kotlin {
                 implementation(libs.ktor.server.auth.jwt)
                 implementation(libs.ktor.server.status.pages)
                 implementation(libs.ktor.server.cors)
+                implementation(libs.ktor.network)
 
                 // SQLDelight
                 implementation(libs.sqldelight.runtime)
@@ -49,6 +51,8 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation(libs.sqldelight.android.driver)
+                implementation(libs.androidx.core.ktx)
+                implementation("androidx.appcompat:appcompat:1.6.1")
             }
         }
 
