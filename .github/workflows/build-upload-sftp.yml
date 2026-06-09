@@ -24,19 +24,18 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Build Modern APK
+      - name: Build APKs
         run: |
           chmod +x gradlew
-          ./gradlew :androidApp:assembleModernDebug
+          bash gradlew :androidApp:assembleModernDebug :androidApp:assembleLegacyDebug --info 2>&1 | tail -50
 
-      - name: Build Legacy APK
-        run: ./gradlew :androidApp:assembleLegacyDebug
+      - name: List build outputs
+        run: find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
 
       - name: Prepare upload directory
         run: |
           mkdir -p upload
-          cp androidApp/build/outputs/apk/modern/debug/*.apk upload/
-          cp androidApp/build/outputs/apk/legacy/debug/*.apk upload/
+          find . -name "*.apk" -type f -exec cp {} upload/ \;
           ls -la upload/
 
       - name: Upload APK to SFTP
