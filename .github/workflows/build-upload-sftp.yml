@@ -1,0 +1,60 @@
+name: Build Android APK and Upload to SFTP
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    if: github.repository == 'weijia/immich-android-server'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Restore Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Build Modern APK
+        run: ./gradlew :androidApp:assembleModernRelease
+
+      - name: Build Legacy APK
+        run: ./gradlew :androidApp:assembleLegacyRelease
+
+      - name: Prepare upload directory
+        run: |
+          mkdir -p upload
+          cp androidApp/build/outputs/apk/modern/release/*.apk upload/ || true
+          cp androidApp/build/outputs/apk/legacy/release/*.apk upload/ || true
+          ls -la upload/
+
+      - name: Upload APK to SFTP
+        uses: weijia/action-upload-sftp@master
+        with:
+          sftp-host: ${{ secrets.SFTP_HOST }}
+          sftp-port: ${{ secrets.SFTP_PORT }}
+          sftp-username: ${{ secrets.SFTP_USERNAME }}
+          sftp-password: ${{ secrets.SFTP_PASSWORD }}
+          source-path: ./upload/
+          remote-path: /home/github/apps/immich-android-server/
+          cleanup-old-files: 'true'
+          max-keep-files: 5
