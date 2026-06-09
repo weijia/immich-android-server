@@ -25,7 +25,7 @@ android {
         }
     }
 
-    flavorDimensions = "ui"
+    flavorDimensions += "ui"
 
     productFlavors {
         // Modern: Compose UI, minSdk 21 (Android 5.0+)
