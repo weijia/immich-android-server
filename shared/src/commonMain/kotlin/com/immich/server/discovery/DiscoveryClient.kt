@@ -32,8 +32,7 @@ class DiscoveryClient(
         val responses = mutableListOf<DiscoveryProtocol.DiscoveryResponse>()
 
         try {
-            // Enable broadcast
-            socket.broadcast = true
+            // Note: broadcast is enabled by default on most systems
 
             // Send discovery request
             val requestPacket = ByteReadPacket(DiscoveryProtocol.DISCOVER_REQUEST.encodeToByteArray())

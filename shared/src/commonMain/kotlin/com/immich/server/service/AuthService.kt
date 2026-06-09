@@ -64,7 +64,7 @@ class AuthService(private val database: ImmichDatabase) {
 
     private fun generateToken(userId: String): String {
         // TODO: JWT implementation
-        return "token_$userId_${Clock.System.now().epochSeconds}"
+        return "token_${userId}_${Clock.System.now().epochSeconds}"
     }
 
     private fun generateId(): String {

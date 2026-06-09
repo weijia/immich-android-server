@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.immich.server.R
 
 actual class PlatformNotification(private val context: Context) {
     private val channelId = "immich_server_channel"
