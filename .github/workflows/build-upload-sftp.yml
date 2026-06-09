@@ -25,7 +25,9 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Build Modern APK
-        run: ./gradlew :androidApp:assembleModernDebug
+        run: |
+          chmod +x gradlew
+          ./gradlew :androidApp:assembleModernDebug
 
       - name: Build Legacy APK
         run: ./gradlew :androidApp:assembleLegacyDebug
