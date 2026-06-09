@@ -1,6 +1,7 @@
 package com.immich.server.android
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -22,8 +23,18 @@ import androidx.compose.ui.unit.dp
 import com.immich.server.android.ui.theme.ImmichServerTheme
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.i(TAG, "MainActivity onCreate")
+
+        val app = ImmichServerApplication.instance
+        Log.d(TAG, "Server isRunning=${app.server.isRunning()}")
+
         setContent {
             ImmichServerTheme {
                 Surface(
@@ -34,6 +45,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.i(TAG, "MainActivity onResume")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.i(TAG, "MainActivity onPause")
     }
 }
 
@@ -79,14 +100,19 @@ fun ServerControlScreen() {
 
         Button(
             onClick = {
+                Log.i("MainActivity", "Button clicked, current status: $serverStatus")
                 if (app.server.isRunning()) {
+                    Log.i("MainActivity", "Stopping server...")
                     app.server.stop()
                     serverStatus = "Stopped"
                     serverUrl = ""
+                    Log.i("MainActivity", "Server stopped")
                 } else {
+                    Log.i("MainActivity", "Starting server...")
                     app.server.start()
                     serverStatus = "Running"
                     serverUrl = app.server.getServerUrl()
+                    Log.i("MainActivity", "Server started, URL: $serverUrl")
                 }
             }
         ) {

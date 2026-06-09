@@ -5,6 +5,7 @@ import com.immich.server.api.getPlatformVersion
 import com.immich.server.api.serverInfoRoutes
 import com.immich.server.db.ImmichDatabase
 import com.immich.server.discovery.DiscoveryServer
+import com.immich.server.platform.Logger
 import com.immich.server.platform.PlatformDatabaseDriverFactory
 import com.immich.server.platform.PlatformFileStorage
 import com.immich.server.platform.PlatformNotification
@@ -42,15 +43,21 @@ class ImmichServer(
     private lateinit var authService: AuthService
 
     fun start() {
+        Logger.i("[ImmichServer] Starting server on port $port")
+
         // Initialize database
+        Logger.d("[ImmichServer] Initializing database")
         database = ImmichDatabase(driverFactory.createDriver())
         authService = AuthService(database)
+        Logger.i("[ImmichServer] Database initialized")
 
         // Create notification channel (if supported)
+        Logger.d("[ImmichServer] Creating notification channel")
         notification.createNotificationChannel()
         notification.showNotification("Immich Server", "Server starting on port $port")
 
         // Start HTTP server
+        Logger.i("[ImmichServer] Starting HTTP server on port $port")
         server = embeddedServer(CIO, port = port) {
             install(ContentNegotiation) {
                 json(Json {
@@ -69,6 +76,7 @@ class ImmichServer(
 
             install(StatusPages) {
                 exception<Throwable> { call, cause ->
+                    Logger.e("[ImmichServer] HTTP error", cause)
                     call.respondText("Error: ${cause.localizedMessage}")
                 }
             }
@@ -81,31 +89,56 @@ class ImmichServer(
                 }
             }
         }.start(wait = false)
+        Logger.i("[ImmichServer] HTTP server started on port $port")
+
+        // Log server URL
+        val serverUrl = getServerUrl()
+        Logger.i("[ImmichServer] Server URL: $serverUrl")
 
         // Start discovery server (UDP broadcast)
+        Logger.i("[ImmichServer] Starting discovery server")
         startDiscoveryServer()
 
         notification.showNotification("Immich Server", "Running on port $port")
+        Logger.i("[ImmichServer] Server fully started and ready")
     }
 
     fun stop() {
+        Logger.i("[ImmichServer] Stopping server")
         discoveryServer?.stop()
         server?.stop(1000, 2000)
         notification.cancelNotification()
+        Logger.i("[ImmichServer] Server stopped")
     }
 
-    fun isRunning(): Boolean = server != null
+    fun isRunning(): Boolean {
+        val running = server != null
+        Logger.d("[ImmichServer] isRunning=$running")
+        return running
+    }
 
     fun getDatabase(): ImmichDatabase = database
 
-    fun getServerUrl(): String = NetworkUtils.getServerUrl(port)
+    fun getServerUrl(): String {
+        val url = NetworkUtils.getServerUrl(port)
+        Logger.d("[ImmichServer] getServerUrl()=$url")
+        return url
+    }
 
     private fun startDiscoveryServer() {
+        val serverUrl = getServerUrl()
+        Logger.i("[ImmichServer] Starting discovery server with URL: $serverUrl")
+
         discoveryServer = DiscoveryServer(
             getServerUrl = { getServerUrl() }
         )
         scope.launch {
-            discoveryServer?.start()
+            try {
+                discoveryServer?.start()
+            } catch (e: Exception) {
+                Logger.e("[ImmichServer] Discovery server failed to start", e)
+            }
         }
+        Logger.i("[ImmichServer] Discovery server launched")
     }
 }

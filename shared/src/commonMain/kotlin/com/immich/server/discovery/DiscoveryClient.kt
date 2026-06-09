@@ -1,5 +1,6 @@
 package com.immich.server.discovery
 
+import com.immich.server.platform.Logger
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.Datagram
 import io.ktor.network.sockets.InetSocketAddress
@@ -24,10 +25,15 @@ class DiscoveryClient(
 ) {
 
     suspend fun discover(): List<DiscoveryProtocol.DiscoveryResponse> = withContext(Dispatchers.IO) {
+        Logger.i("[DiscoveryClient] Starting discovery on port $port, timeout=${timeoutMs}ms")
+
         val selector = SelectorManager(Dispatchers.IO)
         val socket = aSocket(selector)
             .udp()
             .bind(InetSocketAddress("0.0.0.0", 0))
+
+        val localAddress = socket.localAddress
+        Logger.d("[DiscoveryClient] Bound to local address: $localAddress")
 
         val responses = mutableListOf<DiscoveryProtocol.DiscoveryResponse>()
 
@@ -39,29 +45,43 @@ class DiscoveryClient(
             val broadcastAddress = InetSocketAddress(DiscoveryProtocol.BROADCAST_ADDRESS, port)
             val requestDatagram = Datagram(requestPacket, broadcastAddress)
 
+            Logger.i("[DiscoveryClient] Sending discovery broadcast to ${DiscoveryProtocol.BROADCAST_ADDRESS}:$port")
+            Logger.d("[DiscoveryClient] Request payload: '${DiscoveryProtocol.DISCOVER_REQUEST}'")
+
             socket.send(requestDatagram)
-            println("Discovery broadcast sent to ${DiscoveryProtocol.BROADCAST_ADDRESS}:$port")
+            Logger.i("[DiscoveryClient] Discovery broadcast sent successfully")
 
             // Wait for responses with timeout
             withTimeout(timeoutMs) {
                 while (true) {
+                    Logger.d("[DiscoveryClient] Waiting for response...")
                     val datagram = socket.receive()
                     val response = datagram.packet.readText()
+                    val senderAddress = datagram.address as InetSocketAddress
+
+                    Logger.d("[DiscoveryClient] Received packet from ${senderAddress.hostname}:${senderAddress.port}: '$response'")
 
                     DiscoveryProtocol.parseResponse(response)?.let {
                         responses.add(it)
-                        println("Discovered server: ${it.serverUrl}")
+                        Logger.i("[DiscoveryClient] Discovered server: ${it.serverUrl} (name=${it.serverName}, version=${it.version})")
+                    } ?: run {
+                        Logger.w("[DiscoveryClient] Invalid response from ${senderAddress.hostname}:${senderAddress.port}: '$response'")
                     }
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            // Expected - timeout reached
-            println("Discovery timeout reached, found ${responses.size} server(s)")
+            Logger.i("[DiscoveryClient] Discovery timeout reached, found ${responses.size} server(s)")
         } catch (e: Exception) {
-            println("Discovery error: ${e.message}")
+            Logger.e("[DiscoveryClient] Discovery error", e)
         } finally {
+            Logger.d("[DiscoveryClient] Closing socket and selector")
             socket.close()
             selector.close()
+        }
+
+        Logger.i("[DiscoveryClient] Discovery complete. Total servers found: ${responses.size}")
+        responses.forEachIndexed { index, response ->
+            Logger.i("[DiscoveryClient] Server #${index + 1}: ${response.serverUrl}")
         }
 
         responses
