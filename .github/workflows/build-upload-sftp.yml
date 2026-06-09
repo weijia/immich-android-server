@@ -27,15 +27,13 @@ jobs:
       - name: Build APKs
         run: |
           chmod +x gradlew
-          bash gradlew :androidApp:assembleModernDebug :androidApp:assembleLegacyDebug --info 2>&1 | tail -50
-
-      - name: List build outputs
-        run: find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
+          ./gradlew :androidApp:assembleModernDebug :androidApp:assembleLegacyDebug
 
       - name: Prepare upload directory
         run: |
           mkdir -p upload
-          find . -name "*.apk" -type f -exec cp {} upload/ \;
+          cp androidApp/build/outputs/apk/modern/debug/*.apk upload/
+          cp androidApp/build/outputs/apk/legacy/debug/*.apk upload/
           ls -la upload/
 
       - name: Upload APK to SFTP
