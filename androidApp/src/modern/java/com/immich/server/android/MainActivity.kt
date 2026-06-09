@@ -125,7 +125,15 @@ fun ServerControlScreen(onViewLogs: () -> Unit) {
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = BuildInfo.display,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         Text(
             text = "Status: $serverStatus",

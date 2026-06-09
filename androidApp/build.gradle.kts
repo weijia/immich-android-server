@@ -3,6 +3,10 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
+// 从 CI 参数读取版本号，默认使用开发版本
+val versionName: String = project.findProperty("versionName") as String? ?: "0.1.0-dev"
+val versionCode: Int = (project.findProperty("versionCode") as String? ?: "1").toInt()
+
 android {
     namespace = "com.immich.server.android"
     compileSdk = 34
@@ -11,8 +15,8 @@ android {
         applicationId = "com.immich.server.android"
         minSdk = 21
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        this.versionCode = versionCode
+        this.versionName = versionName
     }
 
     buildTypes {
@@ -31,13 +35,11 @@ android {
         // Modern: Compose UI, minSdk 21 (Android 5.0+)
         create("modern") {
             minSdk = 21
-            versionNameSuffix = "-modern"
             isDefault = true
         }
         // Legacy: XML UI, minSdk 21 (Android 5.0+)
         create("legacy") {
             minSdk = 21
-            versionNameSuffix = "-legacy"
         }
     }
 
@@ -56,6 +58,15 @@ android {
 
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.10"
+    }
+
+    applicationVariants.all {
+        val variant = this
+        variant.outputs.all {
+            val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
+            // APK 文件名格式：immich-server-{versionName}.apk
+            output.outputFileName = "immich-server-${variant.versionName}.apk"
+        }
     }
 }
 
