@@ -15,11 +15,6 @@ kotlin {
         }
     }
 
-    // iOS targets
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-
     // JVM target (for desktop/minimal)
     jvm()
 
@@ -54,12 +49,6 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation(libs.sqldelight.android.driver)
-            }
-        }
-
-        val iosMain by getting {
-            dependencies {
-                implementation(libs.sqldelight.native.driver)
             }
         }
 
