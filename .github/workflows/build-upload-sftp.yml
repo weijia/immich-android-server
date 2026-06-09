@@ -19,24 +19,22 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'zulu'
+          distribution: 'temurin'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Grant Gradle execute permission
-        run: chmod +x gradlew
-
       - name: Build Modern APK
-        run: ./gradlew :androidApp:assembleModernDebug --no-daemon --stacktrace
+        run: ./gradlew :androidApp:assembleModernDebug
 
       - name: Build Legacy APK
-        run: ./gradlew :androidApp:assembleLegacyDebug --no-daemon --stacktrace
+        run: ./gradlew :androidApp:assembleLegacyDebug
 
       - name: Prepare upload directory
         run: |
           mkdir -p upload
-          find androidApp/build/outputs/apk -name "*.apk" -exec cp {} upload/ \;
+          cp androidApp/build/outputs/apk/modern/debug/*.apk upload/
+          cp androidApp/build/outputs/apk/legacy/debug/*.apk upload/
           ls -la upload/
 
       - name: Upload APK to SFTP
