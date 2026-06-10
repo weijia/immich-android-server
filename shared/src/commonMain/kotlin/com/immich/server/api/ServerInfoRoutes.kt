@@ -2,14 +2,37 @@ package com.immich.server.api
 
 import com.immich.server.model.PublicFeatures
 import com.immich.server.model.ServerInfoResponse
-import com.immich.server.model.SupportedMediaTypes
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.Serializable
 import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+
+// --- Response DTOs ---
+
+@Serializable
+data class PingResponse(val res: String)
+
+@Serializable
+data class ServerVersionResponse(val major: Int, val minor: Int, val patch: Int)
+
+@Serializable
+data class ServerConfigResponse(
+    val oauthButtonText: String = "",
+    val isInitialized: Boolean = true,
+    val isOnboarded: Boolean = true
+)
+
+@Serializable
+data class WellKnownResponse(val api: WellKnownApi)
+
+@Serializable
+data class WellKnownApi(val endpoint: String)
+
+// --- Routes ---
 
 fun Route.serverInfoRoutes() {
     // Immich client compatibility endpoints
@@ -17,30 +40,23 @@ fun Route.serverInfoRoutes() {
 
     // 1. /api/server/ping — Client pings this to check server availability
     get("/server/ping") {
-        call.respond(mapOf("res" to "pong"))
+        call.respond(PingResponse(res = "pong"))
     }
 
-    // 3. /api/server/version — Client checks version compatibility
+    // 2. /api/server/version — Client checks version compatibility
+    //    major must match client's major version (currently 3.x)
     get("/server/version") {
-        call.respond(mapOf(
-            "major" to 1,
-            "minor" to 108,
-            "patch" to 0
-        ))
+        call.respond(ServerVersionResponse(major = 3, minor = 0, patch = 0))
     }
 
-    // 4. /api/server/features — Client checks feature flags
+    // 3. /api/server/features — Client checks feature flags
     get("/server/features") {
         call.respond(PublicFeatures())
     }
 
-    // 5. /api/server/config — Client checks server config
+    // 4. /api/server/config — Client checks server config
     get("/server/config") {
-        call.respond(mapOf(
-            "oauthButtonText" to "",
-            "isInitialized" to true,
-            "isOnboarded" to true
-        ))
+        call.respond(ServerConfigResponse())
     }
 
     // Legacy endpoints (for backward compatibility)
@@ -54,14 +70,11 @@ fun Route.serverInfoRoutes() {
     }
 
     get("/server-info/ping") {
-        call.respond(mapOf("res" to "pong"))
+        call.respond(PingResponse(res = "pong"))
     }
 
     get("/server-info/version") {
-        call.respond(mapOf(
-            "version" to "1.108.0",
-            "versionUrl" to "https://github.com/immich-app/immich/releases/tag/v1.108.0"
-        ))
+        call.respond(ServerVersionResponse(major = 3, minor = 0, patch = 0))
     }
 
     get("/server-info/features") {
