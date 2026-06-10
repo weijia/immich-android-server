@@ -17,8 +17,8 @@ android {
         applicationId = "com.immich.server.android"
         minSdk = 21
         targetSdk = 34
-        this.versionCode = versionCode
-        this.versionName = versionName
+        versionCode = versionCode
+        versionName = versionName
     }
 
     buildTypes {
