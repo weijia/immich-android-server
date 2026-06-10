@@ -3,17 +3,21 @@ package com.immich.server.android
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 
 /**
  * 版本信息（由 GitHub Actions 构建时注入 versionName 和 versionCode）
  * 通过 PackageManager 读取 APK manifest 中的版本信息
  */
 object BuildInfo {
+    private const val TAG = "BuildInfo"
 
     private var appContext: Context? = null
 
     fun initialize(context: Context) {
         appContext = context.applicationContext
+        Log.d(TAG, "Initialized, package=${context.packageName}")
+        Log.i(TAG, "Version: $versionName ($versionCode)")
     }
 
     /**
@@ -21,7 +25,11 @@ object BuildInfo {
      */
     val versionName: String
         get() {
-            val ctx = appContext ?: return "0.0.0"
+            val ctx = appContext
+            if (ctx == null) {
+                Log.w(TAG, "appContext is null, returning default version")
+                return "0.0.0"
+            }
             return try {
                 val pm = ctx.packageManager
                 val pkgName = ctx.packageName
@@ -31,8 +39,15 @@ object BuildInfo {
                     @Suppress("DEPRECATION")
                     pm.getPackageInfo(pkgName, 0)
                 }
-                info.versionName ?: "0.0.0"
+                val name = info.versionName
+                Log.d(TAG, "PackageManager versionName=$name")
+                if (name.isNullOrBlank() || name == "null") {
+                    "0.0.0"
+                } else {
+                    name
+                }
             } catch (e: Exception) {
+                Log.e(TAG, "Failed to read version", e)
                 "0.0.0"
             }
         }
@@ -59,13 +74,13 @@ object BuildInfo {
                     info.versionCode.toLong()
                 }
             } catch (e: Exception) {
+                Log.e(TAG, "Failed to read versionCode", e)
                 -1
             }
         }
 
     /**
      * 构建类型（tag 或 datetime）
-     * 从 versionName 推断
      */
     val buildType: String
         get() {
@@ -80,8 +95,6 @@ object BuildInfo {
 
     /**
      * 格式化显示
-     * tag 构建：v1.1.0
-     * datetime 构建：0.0.0 (2026-06-09 14:30 CST)
      */
     val display: String
         get() {
@@ -106,9 +119,6 @@ object BuildInfo {
             }
         }
 
-    /**
-     * 完整信息字符串（用于日志和调试）
-     */
     fun fullInfo(): String {
         return """
             Immich Android Server

@@ -7,6 +7,8 @@ plugins {
 val versionName: String = project.findProperty("versionName") as String? ?: "0.1.0-dev"
 val versionCode: Int = (project.findProperty("versionCode") as String? ?: "1").toInt()
 
+println("[BUILD] versionName=$versionName versionCode=$versionCode")
+
 android {
     namespace = "com.immich.server.android"
     compileSdk = 34
