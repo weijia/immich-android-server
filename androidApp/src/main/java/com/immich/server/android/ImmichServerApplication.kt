@@ -28,6 +28,11 @@ class ImmichServerApplication : Application() {
         Log.d(TAG, "Initializing NetworkUtils")
         NetworkUtils.initialize(this)
 
+        // Initialize BuildInfo for version reading
+        Log.d(TAG, "Initializing BuildInfo")
+        BuildInfo.initialize(this)
+        Log.i(TAG, "Version: ${BuildInfo.display}")
+
         Log.d(TAG, "Creating platform components")
         val driverFactory = PlatformDatabaseDriverFactory(this)
         val fileStorage = PlatformFileStorage(this)
