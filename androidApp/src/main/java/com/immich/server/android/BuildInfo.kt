@@ -6,7 +6,7 @@ import android.os.Build
 
 /**
  * 版本信息（由 GitHub Actions 构建时注入 versionName 和 versionCode）
- * 通过 PackageManager 读取 APK 的版本信息
+ * 通过 BuildConfig 直接读取 Gradle 构建时设置的版本信息
  */
 object BuildInfo {
 
@@ -16,52 +16,44 @@ object BuildInfo {
         appContext = context.applicationContext
     }
 
-    private val pm: PackageManager?
-        get() = appContext?.packageManager
-
-    private val packageName: String?
-        get() = appContext?.packageName
-
-    private val packageInfo: android.content.pm.PackageInfo?
-        get() {
-            val ctx = appContext ?: return null
-            val pkgName = ctx.packageName
-            return try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    pm?.getPackageInfo(pkgName, PackageManager.PackageInfoFlags.of(0))
-                } else {
-                    @Suppress("DEPRECATION")
-                    pm?.getPackageInfo(pkgName, 0)
-                }
-            } catch (e: PackageManager.NameNotFoundException) {
-                null
-            } catch (e: Exception) {
-                null
-            }
-        }
-
     /**
      * 版本号（如 1.1.0 或 0.0.0-20260609.143000CST）
+     * 直接从 BuildConfig 读取，避免 PackageManager API 兼容性问题
      */
     val versionName: String
-        get() {
-            val name = packageInfo?.versionName
-            return if (name.isNullOrBlank()) "0.0.0" else name
+        get() = try {
+            BuildConfig.VERSION_NAME ?: "0.0.0"
+        } catch (e: Exception) {
+            // Fallback to PackageManager if BuildConfig fails
+            readVersionFromPackageManager() ?: "0.0.0"
         }
 
     /**
      * 版本代码
      */
-    val versionCode: Long
-        get() {
-            val info = packageInfo ?: return -1
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                info.longVersionCode
+    val versionCode: Int
+        get() = try {
+            BuildConfig.VERSION_CODE
+        } catch (e: Exception) {
+            -1
+        }
+
+    private fun readVersionFromPackageManager(): String? {
+        val ctx = appContext ?: return null
+        return try {
+            val pm = ctx.packageManager
+            val pkgName = ctx.packageName
+            val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                pm.getPackageInfo(pkgName, PackageManager.PackageInfoFlags.of(0))
             } else {
                 @Suppress("DEPRECATION")
-                info.versionCode.toLong()
+                pm.getPackageInfo(pkgName, 0)
             }
+            info.versionName
+        } catch (e: Exception) {
+            null
         }
+    }
 
     /**
      * 构建类型（tag 或 datetime）
@@ -70,8 +62,6 @@ object BuildInfo {
     val buildType: String
         get() {
             val name = versionName
-            // tag 构建：纯版本号如 1.1.0（不含 -）
-            // datetime 构建：含时间戳如 0.0.0-20260609.143000CST
             return if (name.contains("-")) {
                 val parts = name.split("-")
                 if (parts.size > 1 && parts[1].length >= 15) "datetime" else "tag"
@@ -91,12 +81,10 @@ object BuildInfo {
             if (buildType == "tag") {
                 return "v$name"
             }
-            // datetime 构建，从 versionName 提取时间
             val dashIndex = name.indexOf('-')
             return if (dashIndex >= 0) {
                 val base = name.substring(0, dashIndex)
                 val timestamp = name.substring(dashIndex + 1)
-                // timestamp 格式：20260609.143000CST
                 val cleanTimestamp = timestamp.removeSuffix("CST")
                 val formatted = if (cleanTimestamp.length >= 15) {
                     "${cleanTimestamp.substring(0, 4)}-${cleanTimestamp.substring(4, 6)}-${cleanTimestamp.substring(6, 8)} " +
@@ -120,7 +108,7 @@ object BuildInfo {
             Build Type: $buildType
             Display: $display
             Android SDK: ${Build.VERSION.SDK_INT}
-            Package: ${packageName ?: "unknown"}
+            Package: ${appContext?.packageName ?: "unknown"}
         """.trimIndent()
     }
 }
