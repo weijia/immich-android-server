@@ -26,6 +26,7 @@ object DiscoveryProtocol {
         isLenient = true
         ignoreUnknownKeys = true
         coerceInputValues = true
+        encodeDefaults = true
     }
 
     @Serializable
