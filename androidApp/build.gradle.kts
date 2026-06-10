@@ -62,6 +62,14 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.10"
     }
+
+    applicationVariants.all {
+        val variant = this
+        variant.outputs.all {
+            val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
+            println("[BUILD] variant=${variant.name} versionName=${variant.versionName} versionCode=${variant.versionCode} outputFileName=${output.outputFileName}")
+        }
+    }
 }
 
 dependencies {
