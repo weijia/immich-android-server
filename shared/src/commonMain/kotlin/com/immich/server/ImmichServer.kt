@@ -3,6 +3,7 @@ package com.immich.server
 import com.immich.server.api.authRoutes
 import com.immich.server.api.getPlatformVersion
 import com.immich.server.api.serverInfoRoutes
+import com.immich.server.api.wellKnownRoutes
 import com.immich.server.db.ImmichDatabase
 import com.immich.server.discovery.DiscoveryServer
 import com.immich.server.platform.Logger
@@ -18,9 +19,7 @@ import io.ktor.server.cio.CIO
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.CoroutineScope
@@ -85,9 +84,7 @@ class ImmichServer(
 
             routing {
                 // Well-known endpoint (outside /api)
-                get("/.well-known/immich") {
-                    call.respond(mapOf("api" to mapOf("endpoint" to "/api")))
-                }
+                wellKnownRoutes()
 
                 route("/api") {
                     serverInfoRoutes()
