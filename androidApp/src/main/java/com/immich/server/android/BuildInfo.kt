@@ -6,7 +6,7 @@ import android.os.Build
 
 /**
  * 版本信息（由 GitHub Actions 构建时注入 versionName 和 versionCode）
- * 通过 BuildConfig 直接读取 Gradle 构建时设置的版本信息
+ * 通过 PackageManager 读取 APK manifest 中的版本信息
  */
 object BuildInfo {
 
@@ -18,42 +18,50 @@ object BuildInfo {
 
     /**
      * 版本号（如 1.1.0 或 0.0.0-20260609.143000CST）
-     * 直接从 BuildConfig 读取，避免 PackageManager API 兼容性问题
      */
     val versionName: String
-        get() = try {
-            BuildConfig.VERSION_NAME ?: "0.0.0"
-        } catch (e: Exception) {
-            // Fallback to PackageManager if BuildConfig fails
-            readVersionFromPackageManager() ?: "0.0.0"
+        get() {
+            val ctx = appContext ?: return "0.0.0"
+            return try {
+                val pm = ctx.packageManager
+                val pkgName = ctx.packageName
+                val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    pm.getPackageInfo(pkgName, PackageManager.PackageInfoFlags.of(0))
+                } else {
+                    @Suppress("DEPRECATION")
+                    pm.getPackageInfo(pkgName, 0)
+                }
+                info.versionName ?: "0.0.0"
+            } catch (e: Exception) {
+                "0.0.0"
+            }
         }
 
     /**
      * 版本代码
      */
-    val versionCode: Int
-        get() = try {
-            BuildConfig.VERSION_CODE
-        } catch (e: Exception) {
-            -1
-        }
-
-    private fun readVersionFromPackageManager(): String? {
-        val ctx = appContext ?: return null
-        return try {
-            val pm = ctx.packageManager
-            val pkgName = ctx.packageName
-            val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                pm.getPackageInfo(pkgName, PackageManager.PackageInfoFlags.of(0))
-            } else {
-                @Suppress("DEPRECATION")
-                pm.getPackageInfo(pkgName, 0)
+    val versionCode: Long
+        get() {
+            val ctx = appContext ?: return -1
+            return try {
+                val pm = ctx.packageManager
+                val pkgName = ctx.packageName
+                val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    pm.getPackageInfo(pkgName, PackageManager.PackageInfoFlags.of(0))
+                } else {
+                    @Suppress("DEPRECATION")
+                    pm.getPackageInfo(pkgName, 0)
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    info.longVersionCode
+                } else {
+                    @Suppress("DEPRECATION")
+                    info.versionCode.toLong()
+                }
+            } catch (e: Exception) {
+                -1
             }
-            info.versionName
-        } catch (e: Exception) {
-            null
         }
-    }
 
     /**
      * 构建类型（tag 或 datetime）
