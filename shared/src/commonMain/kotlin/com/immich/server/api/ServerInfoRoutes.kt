@@ -12,6 +12,38 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 fun Route.serverInfoRoutes() {
+    // Immich client compatibility endpoints
+    // Note: /.well-known/immich is registered at root level in ImmichServer.kt
+
+    // 1. /api/server/ping — Client pings this to check server availability
+    get("/server/ping") {
+        call.respond(mapOf("res" to "pong"))
+    }
+
+    // 3. /api/server/version — Client checks version compatibility
+    get("/server/version") {
+        call.respond(mapOf(
+            "major" to 1,
+            "minor" to 108,
+            "patch" to 0
+        ))
+    }
+
+    // 4. /api/server/features — Client checks feature flags
+    get("/server/features") {
+        call.respond(PublicFeatures())
+    }
+
+    // 5. /api/server/config — Client checks server config
+    get("/server/config") {
+        call.respond(mapOf(
+            "oauthButtonText" to "",
+            "isInitialized" to true,
+            "isOnboarded" to true
+        ))
+    }
+
+    // Legacy endpoints (for backward compatibility)
     get("/server-info") {
         val now = Clock.System.now().toLocalDateTime(TimeZone.UTC)
         val response = ServerInfoResponse(

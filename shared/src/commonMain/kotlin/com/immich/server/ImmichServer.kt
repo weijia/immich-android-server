@@ -82,6 +82,11 @@ class ImmichServer(
             }
 
             routing {
+                // Well-known endpoint (outside /api)
+                get("/.well-known/immich") {
+                    call.respond(mapOf("api" to mapOf("endpoint" to "/api")))
+                }
+
                 route("/api") {
                     serverInfoRoutes()
                     authRoutes(authService)
