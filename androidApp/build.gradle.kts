@@ -60,15 +60,6 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.10"
     }
-
-    applicationVariants.all {
-        val variant = this
-        variant.outputs.all {
-            val output = this as com.android.build.gradle.internal.api.ApkVariantOutputImpl
-            // APK 文件名格式：immich-server-{versionName}.apk
-            output.outputFileName = "immich-server-${variant.versionName}.apk"
-        }
-    }
 }
 
 dependencies {
