@@ -26,12 +26,6 @@ data class ServerConfigResponse(
     val isOnboarded: Boolean = true
 )
 
-@Serializable
-data class WellKnownResponse(val api: WellKnownApi)
-
-@Serializable
-data class WellKnownApi(val endpoint: String)
-
 // --- Routes ---
 
 fun Route.serverInfoRoutes() {
