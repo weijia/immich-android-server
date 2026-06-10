@@ -19,13 +19,23 @@ object BuildInfo {
     private val pm: PackageManager?
         get() = appContext?.packageManager
 
+    private val packageName: String?
+        get() = appContext?.packageName
+
     private val packageInfo: android.content.pm.PackageInfo?
         get() {
             val ctx = appContext ?: return null
+            val pkgName = ctx.packageName
             return try {
-                @Suppress("DEPRECATION")
-                pm?.getPackageInfo(ctx.packageName, 0)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    pm?.getPackageInfo(pkgName, PackageManager.PackageInfoFlags.of(0))
+                } else {
+                    @Suppress("DEPRECATION")
+                    pm?.getPackageInfo(pkgName, 0)
+                }
             } catch (e: PackageManager.NameNotFoundException) {
+                null
+            } catch (e: Exception) {
                 null
             }
         }
@@ -34,7 +44,10 @@ object BuildInfo {
      * 版本号（如 1.1.0 或 0.0.0-20260609.143000CST）
      */
     val versionName: String
-        get() = packageInfo?.versionName ?: "unknown"
+        get() {
+            val name = packageInfo?.versionName
+            return if (name.isNullOrBlank()) "0.0.0" else name
+        }
 
     /**
      * 版本代码
@@ -42,7 +55,6 @@ object BuildInfo {
     val versionCode: Long
         get() {
             val info = packageInfo ?: return -1
-            @Suppress("DEPRECATION")
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 info.longVersionCode
             } else {
@@ -58,13 +70,13 @@ object BuildInfo {
     val buildType: String
         get() {
             val name = versionName
-            // tag 构建：versionName 不含时间戳（如 1.1.0）
-            // datetime 构建：versionName 含时间戳（如 0.0.0-20260609.143000CST）
-            return if (name.contains(".")) {
+            // tag 构建：纯版本号如 1.1.0（不含 -）
+            // datetime 构建：含时间戳如 0.0.0-20260609.143000CST
+            return if (name.contains("-")) {
                 val parts = name.split("-")
                 if (parts.size > 1 && parts[1].length >= 15) "datetime" else "tag"
             } else {
-                "unknown"
+                "tag"
             }
         }
 
@@ -94,7 +106,7 @@ object BuildInfo {
                 }
                 "$base ($formatted CST)"
             } else {
-                name
+                "v$name"
             }
         }
 
@@ -108,7 +120,7 @@ object BuildInfo {
             Build Type: $buildType
             Display: $display
             Android SDK: ${Build.VERSION.SDK_INT}
-            Package: ${appContext?.packageName ?: "unknown"}
+            Package: ${packageName ?: "unknown"}
         """.trimIndent()
     }
 }
