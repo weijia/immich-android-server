@@ -1,7 +1,5 @@
 package com.immich.server.discovery
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -19,7 +17,6 @@ object DiscoveryProtocol {
     const val DISCOVERY_PORT = 2284
     const val BROADCAST_ADDRESS = "255.255.255.255"
     const val DISCOVER_REQUEST = "DISCOVER_IMMICH_SERVER"
-    const val DISCOVER_RESPONSE_PREFIX = "IMMICH_SERVER_RESPONSE:"
 
     @Serializable
     data class DiscoveryResponse(
@@ -29,22 +26,21 @@ object DiscoveryProtocol {
         val timestamp: Long = 0
     )
 
+    /**
+     * Create response as pure JSON (no prefix)
+     * Clients may expect plain JSON for easier parsing
+     */
     fun createResponse(serverUrl: String): String {
         val response = DiscoveryResponse(
             serverUrl = serverUrl,
             timestamp = kotlinx.datetime.Clock.System.now().epochSeconds
         )
-        return DISCOVER_RESPONSE_PREFIX + Json.encodeToString(response)
+        return Json.encodeToString(response)
     }
 
     fun parseResponse(data: String): DiscoveryResponse? {
         return try {
-            if (data.startsWith(DISCOVER_RESPONSE_PREFIX)) {
-                val json = data.removePrefix(DISCOVER_RESPONSE_PREFIX)
-                Json.decodeFromString<DiscoveryResponse>(json)
-            } else {
-                null
-            }
+            Json.decodeFromString<DiscoveryResponse>(data)
         } catch (e: Exception) {
             null
         }
