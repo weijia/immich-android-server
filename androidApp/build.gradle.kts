@@ -4,10 +4,10 @@ plugins {
 }
 
 // 从 CI 参数读取版本号，默认使用开发版本
-val versionName: String = project.findProperty("versionName") as String? ?: "0.1.0-dev"
-val versionCode: Int = (project.findProperty("versionCode") as String? ?: "1").toInt()
+val buildVersionName: String = project.findProperty("versionName") as String? ?: "0.1.0-dev"
+val buildVersionCode: Int = (project.findProperty("versionCode") as String? ?: "1").toInt()
 
-println("[BUILD] versionName=$versionName versionCode=$versionCode")
+println("[BUILD] versionName=$buildVersionName versionCode=$buildVersionCode")
 
 android {
     namespace = "com.immich.server.android"
@@ -17,8 +17,8 @@ android {
         applicationId = "com.immich.server.android"
         minSdk = 21
         targetSdk = 34
-        versionCode = versionCode
-        versionName = versionName
+        versionCode = buildVersionCode
+        versionName = buildVersionName
     }
 
     buildTypes {
