@@ -1,7 +1,10 @@
 package com.immich.server.api
 
+import com.immich.server.model.AdminCheckResponse
+import com.immich.server.model.ErrorResponse
 import com.immich.server.model.LoginRequest
 import com.immich.server.model.LoginResponse
+import com.immich.server.model.SuccessResponse
 import com.immich.server.model.UserResponse
 import com.immich.server.service.AuthService
 import io.ktor.server.application.call
@@ -18,19 +21,17 @@ fun Route.authRoutes(authService: AuthService) {
         if (response != null) {
             call.respond(response)
         } else {
-            call.respond(io.ktor.http.HttpStatusCode.Unauthorized, mapOf("message" to "Invalid credentials"))
+            call.respond(io.ktor.http.HttpStatusCode.Unauthorized, ErrorResponse(message = "Invalid credentials"))
         }
     }
 
     post("/auth/logout") {
-        // TODO: Invalidate token
-        call.respond(mapOf("successful" to true))
+        call.respond(SuccessResponse())
     }
 
     get("/auth/admin-sign-up") {
-        // Check if admin exists
         val hasAdmin = authService.hasAdmin()
-        call.respond(mapOf("isAdmin" to hasAdmin))
+        call.respond(AdminCheckResponse(isAdmin = hasAdmin))
     }
 
     post("/auth/admin-sign-up") {
@@ -39,7 +40,7 @@ fun Route.authRoutes(authService: AuthService) {
         if (response != null) {
             call.respond(response)
         } else {
-            call.respond(io.ktor.http.HttpStatusCode.BadRequest, mapOf("message" to "Admin already exists"))
+            call.respond(io.ktor.http.HttpStatusCode.BadRequest, ErrorResponse(message = "Admin already exists"))
         }
     }
 

@@ -14,7 +14,10 @@ data class LoginResponse(
     val userId: String,
     val userEmail: String,
     val name: String,
-    val isAdmin: Boolean = false
+    val isAdmin: Boolean = false,
+    val isOnboarded: Boolean = true,
+    val profileImagePath: String = "",
+    val shouldChangePassword: Boolean = false
 )
 
 @Serializable
@@ -24,4 +27,19 @@ data class UserResponse(
     val name: String,
     val avatarColor: String = "#4285F4",
     val storageQuota: Long = 0
+)
+
+@Serializable
+data class ErrorResponse(
+    val message: String
+)
+
+@Serializable
+data class SuccessResponse(
+    val successful: Boolean = true
+)
+
+@Serializable
+data class AdminCheckResponse(
+    val isAdmin: Boolean = false
 )
