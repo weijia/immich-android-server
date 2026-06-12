@@ -38,16 +38,16 @@ android {
                 ?: System.getenv("KEYSTORE_FILE")
             val keystorePassword = project.findProperty("KEYSTORE_PASSWORD") as String? 
                 ?: System.getenv("KEYSTORE_PASSWORD")
-            val keyAlias = project.findProperty("KEY_ALIAS") as String? 
+            val keyAliasValue = project.findProperty("KEY_ALIAS") as String? 
                 ?: System.getenv("KEY_ALIAS")
-            val keyPassword = project.findProperty("KEY_PASSWORD") as String? 
+            val keyPasswordValue = project.findProperty("KEY_PASSWORD") as String? 
                 ?: System.getenv("KEY_PASSWORD")
             
             if (keystoreFile != null && keystorePassword != null) {
                 storeFile = file(keystoreFile)
                 storePassword = keystorePassword
-                keyAlias = keyAlias ?: "immich-server"
-                keyPassword = keyPassword ?: keystorePassword
+                keyAlias = keyAliasValue ?: "immich-server"
+                keyPassword = keyPasswordValue ?: keystorePassword
             } else {
                 // 如果没有配置 release keystore，使用固定的 debug 签名
                 // 这样可以确保 APK 可以覆盖安装
