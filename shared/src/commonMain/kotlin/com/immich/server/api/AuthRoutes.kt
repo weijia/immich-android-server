@@ -25,6 +25,7 @@ fun Route.authRoutes(authService: AuthService) {
             val response = authService.login(request.email, request.password)
             if (response != null) {
                 Logger.i("[AuthRoutes] Login success: userId=${response.userId}")
+                Logger.d("[AuthRoutes] Login response: accessToken=${response.accessToken}, isAdmin=${response.isAdmin}, isOnboarded=${response.isOnboarded}, name=${response.name}, profileImagePath=${response.profileImagePath}, shouldChangePassword=${response.shouldChangePassword}, userEmail=${response.userEmail}")
                 call.respond(response)
             } else {
                 Logger.w("[AuthRoutes] Login failed: invalid credentials")
