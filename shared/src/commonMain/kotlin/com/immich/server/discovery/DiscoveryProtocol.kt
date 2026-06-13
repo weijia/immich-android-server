@@ -32,7 +32,7 @@ object DiscoveryProtocol {
     @Serializable
     data class DiscoveryResponse(
         val serverUrl: String,
-        val version: String = "1.108.0",
+        val version: String = "3.0.0",  // 与 API 版本一致
         val serverName: String = "Immich Android Server",
         val timestamp: Long = 0
     )
@@ -46,7 +46,7 @@ object DiscoveryProtocol {
         val url = if (serverUrl.endsWith("/api")) serverUrl else "$serverUrl/api"
         val response = DiscoveryResponse(
             serverUrl = url,
-            version = "1.108.0",
+            version = "3.0.0",  // 与 API 版本一致
             serverName = "Immich Android Server",
             timestamp = kotlinx.datetime.Clock.System.now().epochSeconds
         )

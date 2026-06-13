@@ -15,7 +15,7 @@ data class LoginResponse(
     val userEmail: String,
     val name: String,
     val isAdmin: Boolean = false,
-    val isOnboarded: Boolean = true,
+    val isOnboarded: Boolean = true,  // 客户端期望这个字段
     val profileImagePath: String = "",
     val shouldChangePassword: Boolean = false
 )

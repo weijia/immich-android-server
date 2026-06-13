@@ -41,7 +41,10 @@ class AuthService(private val database: ImmichDatabase) {
             userId = user.id,
             userEmail = user.email,
             name = user.name,
-            isAdmin = user.is_admin == 1L
+            isAdmin = user.is_admin == 1L,
+            isOnboarded = true,
+            profileImagePath = "",
+            shouldChangePassword = false
         )
     }
 
@@ -74,7 +77,10 @@ class AuthService(private val database: ImmichDatabase) {
             userId = id,
             userEmail = email,
             name = name,
-            isAdmin = true
+            isAdmin = true,
+            isOnboarded = true,
+            profileImagePath = "",
+            shouldChangePassword = false
         )
     }
 
