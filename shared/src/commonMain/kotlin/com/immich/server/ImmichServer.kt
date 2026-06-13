@@ -65,6 +65,7 @@ class ImmichServer(
                     prettyPrint = true
                     isLenient = true
                     ignoreUnknownKeys = true
+                    encodeDefaults = true  // 确保默认值也被编码到 JSON 中
                 })
             }
 
