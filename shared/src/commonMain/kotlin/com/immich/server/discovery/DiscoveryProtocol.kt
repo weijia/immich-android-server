@@ -4,7 +4,7 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import com.immich.server.util.Logger
+import com.immich.server.platform.Logger
 
 /**
  * UDP Discovery Protocol for Immich Server

@@ -3,7 +3,7 @@ package com.immich.server.service
 import com.immich.server.db.ServerConfigQueries
 import com.immich.server.model.ServerConfig
 import com.immich.server.util.HmacUtils
-import com.immich.server.util.Logger
+import com.immich.server.platform.Logger
 import kotlinx.datetime.Clock
 import kotlin.random.Random
 
