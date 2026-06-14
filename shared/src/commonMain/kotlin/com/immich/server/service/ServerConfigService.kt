@@ -158,15 +158,20 @@ class ServerConfigService(private val queries: ServerConfigQueries) {
      * Generate UUID v4 server ID.
      */
     private fun generateServerId(): String {
-        val randomBytes = Random.nextBytes(16)
-        // Create mutable copy and set version/variant bits
-        val bytes = randomBytes.copyOf()
-        // Set version bits (4 in UUID v4)
-        bytes[6] = (bytes[6] and 0x0f.toByte()) or 0x40.toByte()
-        // Set variant bits
-        bytes[8] = (bytes[8] and 0x3f.toByte()) or 0x80.toByte()
+        // Generate random UUID v4 using standard format
+        val random = Random.nextBytes(16)
+        val hex = random.toHexString()
         
-        return bytesToUuid(bytes)
+        // Format as UUID: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+        // where 4 is version and y is variant (8, 9, a, or b)
+        val timeLow = hex.substring(0, 8)
+        val timeMid = hex.substring(8, 12)
+        val timeHiAndVersion = "4" + hex.substring(13, 16)  // Version 4
+        val clockSeqHiAndReserved = ((hex.substring(16, 17).toIntOrNull() ?: 0) % 4 + 8).toString()  // Variant (8-b)
+        val clockSeqLow = hex.substring(17, 20)
+        val node = hex.substring(20, 32)
+        
+        return "$timeLow-$timeMid-$timeHiAndVersion-$clockSeqHiAndReserved$clockSeqLow-$node"
     }
     
     /**
@@ -177,13 +182,6 @@ class ServerConfigService(private val queries: ServerConfigQueries) {
         return bytes.toHexString()
     }
     
-    /**
-     * Convert bytes to UUID string format.
-     */
-    private fun bytesToUuid(bytes: ByteArray): String {
-        val hex = bytes.toHexString()
-        return "${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20, 32)}"
-    }
 }
 
 /**
