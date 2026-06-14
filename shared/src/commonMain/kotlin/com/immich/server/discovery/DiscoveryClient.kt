@@ -1,6 +1,6 @@
 package com.immich.server.discovery
 
-import com.immich.server.util.Logger
+import com.immich.server.platform.Logger
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.Datagram
 import io.ktor.network.sockets.InetSocketAddress
