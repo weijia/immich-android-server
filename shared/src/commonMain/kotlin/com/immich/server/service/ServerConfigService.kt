@@ -158,11 +158,13 @@ class ServerConfigService(private val queries: ServerConfigQueries) {
      * Generate UUID v4 server ID.
      */
     private fun generateServerId(): String {
-        val bytes = Random.nextBytes(16)
+        val randomBytes = Random.nextBytes(16)
+        // Create mutable copy and set version/variant bits
+        val bytes = randomBytes.copyOf()
         // Set version bits (4 in UUID v4)
-        bytes[6] = (bytes[6] and 0x0f) or 0x40
+        bytes[6] = (bytes[6] and 0x0f.toByte()) or 0x40.toByte()
         // Set variant bits
-        bytes[8] = (bytes[8] and 0x3f) or 0x80
+        bytes[8] = (bytes[8] and 0x3f.toByte()) or 0x80.toByte()
         
         return bytesToUuid(bytes)
     }
