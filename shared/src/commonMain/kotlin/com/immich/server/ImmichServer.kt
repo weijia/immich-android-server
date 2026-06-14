@@ -1,9 +1,9 @@
 package com.immich.server
 
 import com.immich.server.api.authRoutes
-import com.immich.server.api.getPlatformVersion
 import com.immich.server.api.serverInfoRoutes
 import com.immich.server.api.wellKnownRoutes
+import com.immich.server.api.tokenExchangeRoutes
 import com.immich.server.db.ImmichDatabase
 import com.immich.server.discovery.DiscoveryServer
 import com.immich.server.platform.Logger
@@ -12,6 +12,7 @@ import com.immich.server.platform.PlatformFileStorage
 import com.immich.server.platform.PlatformNotification
 import com.immich.server.platform.NetworkUtils
 import com.immich.server.service.AuthService
+import com.immich.server.service.ServerConfigService
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
@@ -42,6 +43,7 @@ class ImmichServer(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private lateinit var database: ImmichDatabase
     private lateinit var authService: AuthService
+    private lateinit var serverConfigService: ServerConfigService
 
     fun start() {
         Logger.i("[ImmichServer] Starting server on port $port")
@@ -50,7 +52,13 @@ class ImmichServer(
         Logger.d("[ImmichServer] Initializing database")
         database = ImmichDatabase(driverFactory.createDriver())
         authService = AuthService(database)
+        serverConfigService = ServerConfigService(database.serverConfigQueries)
         Logger.i("[ImmichServer] Database initialized")
+
+        // Initialize server config (generate serverId and serverToken)
+        val config = serverConfigService.getOrCreateConfig()
+        Logger.i("[ImmichServer] Server ID: ${config.serverId}")
+        Logger.i("[ImmichServer] Server Name: ${config.serverName}")
 
         // Create notification channel (if supported)
         Logger.d("[ImmichServer] Creating notification channel")
@@ -90,6 +98,7 @@ class ImmichServer(
                 route("/api") {
                     serverInfoRoutes()
                     authRoutes(authService)
+                    tokenExchangeRoutes(serverConfigService, authService)
                     // TODO: Add assets, albums routes
                 }
             }
@@ -104,7 +113,7 @@ class ImmichServer(
         Logger.i("[ImmichServer] Starting discovery server")
         startDiscoveryServer()
 
-        notification.showNotification("Immich Server", "Running on port $port")
+        notification.showNotification("Immich Server", "Running on port $port\nServer ID: ${config.serverId}")
         Logger.i("[ImmichServer] Server fully started and ready")
     }
 
@@ -124,10 +133,20 @@ class ImmichServer(
 
     fun getDatabase(): ImmichDatabase = database
 
+    fun getServerConfigService(): ServerConfigService = serverConfigService
+
     fun getServerUrl(): String {
         val url = NetworkUtils.getServerUrl(port)
         Logger.d("[ImmichServer] getServerUrl()=$url")
         return url
+    }
+
+    fun getServerId(): String {
+        return serverConfigService.getServerId()
+    }
+
+    fun getServerName(): String {
+        return serverConfigService.getConfig()?.serverName ?: "Immich Android Server"
     }
 
     private fun startDiscoveryServer() {
@@ -135,7 +154,8 @@ class ImmichServer(
         Logger.i("[ImmichServer] Starting discovery server with URL: $serverUrl")
 
         discoveryServer = DiscoveryServer(
-            getServerUrl = { getServerUrl() }
+            getServerUrl = { getServerUrl() },
+            serverConfigService = serverConfigService
         )
         scope.launch {
             try {

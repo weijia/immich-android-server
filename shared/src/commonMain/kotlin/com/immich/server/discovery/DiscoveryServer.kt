@@ -1,6 +1,7 @@
 package com.immich.server.discovery
 
 import com.immich.server.platform.Logger
+import com.immich.server.service.ServerConfigService
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.BoundDatagramSocket
 import io.ktor.network.sockets.Datagram
@@ -8,19 +9,23 @@ import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.sockets.aSocket
 import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.readText
-import io.ktor.utils.io.core.writeText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
  * UDP Discovery Server
- * Listens for broadcast discovery requests and responds with server info
+ * 
+ * Supports protocol versions:
+ * - v1.0: Basic discovery (DISCOVER_IMMICH_SERVER -> response)
+ * - v2.0: Server ID matching (response includes serverId)
+ * - v3.0: Token-based signing (request includes challenge nonce, response includes signature)
+ * 
+ * Listens for broadcast discovery requests and responds with server info.
  */
 class DiscoveryServer(
     private val getServerUrl: () -> String,
+    private val serverConfigService: ServerConfigService,
     private val port: Int = DiscoveryProtocol.DISCOVERY_PORT
 ) {
     private var socket: BoundDatagramSocket? = null
@@ -28,6 +33,11 @@ class DiscoveryServer(
 
     suspend fun start() {
         Logger.i("[DiscoveryServer] Starting discovery server on UDP port $port")
+        
+        // Initialize server config (generate serverId and serverToken if needed)
+        val config = serverConfigService.getOrCreateConfig()
+        Logger.i("[DiscoveryServer] Server ID: ${config.serverId}")
+        Logger.i("[DiscoveryServer] Server Name: ${config.serverName}")
         Logger.d("[DiscoveryServer] Server URL provider: ${getServerUrl()}")
 
         selector = SelectorManager(Dispatchers.IO)
@@ -52,7 +62,17 @@ class DiscoveryServer(
                     val serverUrl = getServerUrl()
                     Logger.d("[DiscoveryServer] Server URL: $serverUrl")
 
-                    val response = DiscoveryProtocol.createResponse(serverUrl)
+                    // Create response with automatic version detection
+                    val response = DiscoveryProtocol.createResponse(
+                        request = request,
+                        serverId = config.serverId,
+                        serverName = config.serverName,
+                        serverUrl = serverUrl,
+                        signFunction = { url, timestamp, nonce ->
+                            serverConfigService.signDiscoveryResponse(url, timestamp, nonce)
+                        }
+                    )
+                    
                     Logger.d("[DiscoveryServer] Response payload: $response")
 
                     val responsePacket = ByteReadPacket(response.encodeToByteArray())
