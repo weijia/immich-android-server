@@ -8,7 +8,6 @@ import kotlinx.datetime.Clock
 import kotlin.random.Random
 
 class ServerConfigService(private val queries: ServerConfigQueries) {
-    private val log = Logger("ServerConfigService")
     
     private var _config: ServerConfig? = null
     
@@ -32,7 +31,7 @@ class ServerConfigService(private val queries: ServerConfigQueries) {
                 createdAt = existingConfig.created_at,
                 updatedAt = existingConfig.updated_at
             )
-            log.i("[ServerConfigService] Loaded existing config: serverId=${_config!!.serverId}")
+            Logger.i("[ServerConfigService] Loaded existing config: serverId=${_config!!.serverId}")
             return _config!!
         }
         
@@ -42,7 +41,7 @@ class ServerConfigService(private val queries: ServerConfigQueries) {
         val serverToken = generateServerToken()
         val serverName = "Immich Android Server"
         
-        log.i("[ServerConfigService] Generating new config: serverId=$serverId")
+        Logger.i("[ServerConfigService] Generating new config: serverId=$serverId")
         
         queries.insert(
             server_id = serverId,
@@ -60,7 +59,7 @@ class ServerConfigService(private val queries: ServerConfigQueries) {
             updatedAt = now
         )
         
-        log.i("[ServerConfigService] New config created and stored")
+        Logger.i("[ServerConfigService] New config created and stored")
         return _config!!
     }
     
@@ -98,7 +97,7 @@ class ServerConfigService(private val queries: ServerConfigQueries) {
         )
         
         _config = config.copy(serverName = newName, updatedAt = now)
-        log.i("[ServerConfigService] Server name updated to: $newName")
+        Logger.i("[ServerConfigService] Server name updated to: $newName")
     }
     
     /**
@@ -116,7 +115,7 @@ class ServerConfigService(private val queries: ServerConfigQueries) {
         )
         
         _config = config.copy(serverToken = newToken, updatedAt = now)
-        log.i("[ServerConfigService] Server token regenerated")
+        Logger.i("[ServerConfigService] Server token regenerated")
         return newToken
     }
     
@@ -131,14 +130,14 @@ class ServerConfigService(private val queries: ServerConfigQueries) {
         val config = getOrCreateConfig()
         val dataToSign = "${config.serverId}|$serverUrl|$timestamp|$challengeNonce"
         
-        log.d("[ServerConfigService] Signing data: $dataToSign")
+        Logger.d("[ServerConfigService] Signing data: $dataToSign")
         
         val signature = HmacUtils.hmacSha256Hex(
             key = config.serverToken,
             data = dataToSign
         )
         
-        log.d("[ServerConfigService] Generated signature: $signature")
+        Logger.d("[ServerConfigService] Generated signature: $signature")
         return signature
     }
     

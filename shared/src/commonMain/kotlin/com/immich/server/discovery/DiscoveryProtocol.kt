@@ -25,7 +25,7 @@ object DiscoveryProtocol {
     const val DISCOVER_REQUEST_PREFIX_V3 = "DISCOVER_IMMICH_SERVER:"
     const val DISCOVER_RESPONSE_PREFIX = "IMMICH_SERVER_RESPONSE:"
     
-    private val log = Logger("DiscoveryProtocol")
+    // Use Logger static methods
 
     // Lenient JSON parser for discovery responses
     private val json = Json {
@@ -141,7 +141,7 @@ object DiscoveryProtocol {
         val timestamp = Clock.System.now().epochSeconds
         val signature = signFunction(url, timestamp, challengeNonce)
         
-        log.d("[DiscoveryProtocol] Creating v3.0 response: serverId=$serverId, nonce=$challengeNonce, sig=$signature")
+        Logger.d("[DiscoveryProtocol] Creating v3.0 response: serverId=$serverId, nonce=$challengeNonce, sig=$signature")
         
         val response = DiscoveryResponseV3(
             serverId = serverId,
@@ -208,7 +208,7 @@ object DiscoveryProtocol {
         
         // v1.0 request
         if (trimmed == DISCOVER_REQUEST_V1) {
-            log.d("[DiscoveryProtocol] Received v1.0 request")
+            Logger.d("[DiscoveryProtocol] Received v1.0 request")
             return null
         }
         
@@ -218,12 +218,12 @@ object DiscoveryProtocol {
             if (parts.size >= 2) {
                 val clientId = parts[0]
                 val challengeNonce = parts[1]
-                log.d("[DiscoveryProtocol] Received v3.0 request: clientId=$clientId, nonce=$challengeNonce")
+                Logger.d("[DiscoveryProtocol] Received v3.0 request: clientId=$clientId, nonce=$challengeNonce")
                 return DiscoveryRequestV3(clientId = clientId, challengeNonce = challengeNonce)
             }
         }
         
-        log.w("[DiscoveryProtocol] Unknown request format: $trimmed")
+        Logger.w("[DiscoveryProtocol] Unknown request format: $trimmed")
         return null
     }
 
@@ -261,7 +261,7 @@ object DiscoveryProtocol {
                 }
             }
         } catch (e: Exception) {
-            log.e("[DiscoveryProtocol] Failed to parse response: $e")
+            Logger.e("[DiscoveryProtocol] Failed to parse response: $e")
             null
         }
     }
