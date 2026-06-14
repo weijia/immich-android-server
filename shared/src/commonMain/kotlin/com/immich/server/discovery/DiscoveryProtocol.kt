@@ -193,6 +193,14 @@ object DiscoveryProtocol {
                     serverUrl = serverUrl
                 )
             }
+            else -> {
+                // Should never happen, but handle gracefully
+                createResponseV2(
+                    serverId = serverId,
+                    serverName = serverName,
+                    serverUrl = serverUrl
+                )
+            }
         }
     }
 
