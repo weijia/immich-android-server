@@ -73,9 +73,9 @@ fun Route.authRoutes(authService: AuthService) {
     get("/users/me") {
         Logger.i("[AuthRoutes] GET /users/me received")
         // TODO: Get current user from auth token
-        // For now, return a default admin user
+        // For now, return a default admin user with proper UUID format
         call.respond(UserAdminResponse(
-            id = "admin-user-id",
+            id = "550e8400-e29b-41d4-a716-446655440000",  // Proper UUID format
             email = "admin@example.com",
             name = "Admin User",
             isAdmin = true,

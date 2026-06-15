@@ -31,23 +31,31 @@ data class UserResponse(
 
 @Serializable
 data class UserAdminResponse(
-    val id: String,
+    val id: String,  // UUID format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
     val email: String,
     val name: String,
-    val avatarColor: String = "blue",
-    val createdAt: String = "2024-01-01T00:00:00.000Z",
-    val deletedAt: String? = null,
+    val avatarColor: String = "blue",  // Enum: primary, pink, red, yellow, blue, green, purple, orange, gray, amber
+    val createdAt: String = "2024-01-01T00:00:00.000Z",  // ISO 8601 date-time
+    val deletedAt: String? = null,  // ISO 8601 date-time, nullable
     val isAdmin: Boolean = false,
-    val license: String? = null,
+    val license: UserLicense? = null,  // Object, not String
     val oauthId: String = "",
-    val profileChangedAt: Long? = null,
+    val profileChangedAt: String? = null,  // ISO 8601 date-time, not Long
     val profileImagePath: String = "",
     val quotaSizeInBytes: Long? = null,
     val quotaUsageInBytes: Long? = null,
     val shouldChangePassword: Boolean = false,
-    val status: String = "active",
+    val status: String = "active",  // Enum: active, removing, deleted
     val storageLabel: String? = null,
-    val updatedAt: String = "2024-01-01T00:00:00.000Z"
+    val updatedAt: String = "2024-01-01T00:00:00.000Z"  // ISO 8601 date-time
+)
+
+@Serializable
+data class UserLicense(
+    val activatedAt: String? = null,  // ISO 8601 date-time
+    val licenseKey: String? = null,
+    val startAt: String? = null,  // ISO 8601 date-time
+    val expiresAt: String? = null  // ISO 8601 date-time
 )
 
 @Serializable
