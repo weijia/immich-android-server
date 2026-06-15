@@ -6,6 +6,7 @@ import com.immich.server.model.LoginRequest
 import com.immich.server.model.LoginResponse
 import com.immich.server.model.SuccessResponse
 import com.immich.server.model.UserResponse
+import com.immich.server.model.UserAdminResponse
 import com.immich.server.service.AuthService
 import com.immich.server.platform.Logger
 import io.ktor.server.application.call
@@ -71,7 +72,15 @@ fun Route.authRoutes(authService: AuthService) {
 
     get("/users/me") {
         Logger.i("[AuthRoutes] GET /users/me received")
-        // TODO: Get current user from auth
-        call.respond(UserResponse("", "", ""))
+        // TODO: Get current user from auth token
+        // For now, return a default admin user
+        call.respond(UserAdminResponse(
+            id = "admin-user-id",
+            email = "admin@example.com",
+            name = "Admin User",
+            isAdmin = true,
+            shouldChangePassword = false,
+            status = "active"
+        ))
     }
 }

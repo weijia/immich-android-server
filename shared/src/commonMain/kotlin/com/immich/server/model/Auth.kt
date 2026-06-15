@@ -30,6 +30,27 @@ data class UserResponse(
 )
 
 @Serializable
+data class UserAdminResponse(
+    val id: String,
+    val email: String,
+    val name: String,
+    val avatarColor: String = "blue",
+    val createdAt: String = "2024-01-01T00:00:00.000Z",
+    val deletedAt: String? = null,
+    val isAdmin: Boolean = false,
+    val license: String? = null,
+    val oauthId: String = "",
+    val profileChangedAt: Long? = null,
+    val profileImagePath: String = "",
+    val quotaSizeInBytes: Long? = null,
+    val quotaUsageInBytes: Long? = null,
+    val shouldChangePassword: Boolean = false,
+    val status: String = "active",
+    val storageLabel: String? = null,
+    val updatedAt: String = "2024-01-01T00:00:00.000Z"
+)
+
+@Serializable
 data class ErrorResponse(
     val message: String
 )
