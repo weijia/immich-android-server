@@ -222,25 +222,34 @@ fun LogViewerScreen(onBack: () -> Unit) {
     val listState = rememberLazyListState()
     val clipboardManager = LocalClipboardManager.current
 
-    // Auto-refresh every 1 second
+    // Auto-refresh every 2 seconds (reduced from 1 second to prevent UI lag)
     DisposableEffect(Unit) {
         val handler = android.os.Handler(android.os.Looper.getMainLooper())
         val runnable = object : Runnable {
             override fun run() {
-                logEntries = Logger.logs
-                logCount = logEntries.size
-                handler.postDelayed(this, 1000)
+                // Only update if logs have changed
+                val newLogs = Logger.logs
+                if (newLogs.size != logEntries.size) {
+                    logEntries = newLogs
+                    logCount = newLogs.size
+                }
+                handler.postDelayed(this, 2000)  // Changed from 1000 to 2000
             }
         }
         handler.post(runnable)
         onDispose { handler.removeCallbacks(runnable) }
     }
 
-    // Auto-scroll to bottom when new logs arrive
+    // Auto-scroll to bottom when new logs arrive (only if near bottom)
     LaunchedEffect(logCount) {
         if (autoScroll && logCount > 0) {
-            delay(100)
-            listState.animateScrollToItem(logCount - 1)
+            // Check if we're near the bottom before auto-scrolling
+            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val isNearBottom = lastVisibleItem >= logCount - 5
+            if (isNearBottom) {
+                delay(50)  // Reduced delay
+                listState.scrollToItem(logCount - 1)  // Use scrollToItem instead of animateScrollToItem
+            }
         }
     }
 
@@ -326,7 +335,9 @@ fun LogViewerScreen(onBack: () -> Unit) {
                         .fillMaxSize()
                         .background(Color(0xFF1E1E1E))
                 ) {
-                    items(logEntries, key = { "${it.timestamp}-${it.message}" }) { entry ->
+                    // Use index as stable key instead of timestamp-message
+                    items(logEntries.size, key = { index -> index }) { index ->
+                        val entry = logEntries[index]
                         val textColor = when (entry.level) {
                             "E" -> Color(0xFFFF6B6B)
                             "W" -> Color(0xFFFFD93D)
@@ -357,7 +368,7 @@ fun LogViewerScreen(onBack: () -> Unit) {
                                 color = Color(0xFFCCCCCC),
                                 fontSize = 10.sp,
                                 fontFamily = FontFamily.Monospace,
-                                maxLines = 5,
+                                maxLines = 3,  // Reduced from 5 to prevent long messages
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
