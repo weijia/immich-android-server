@@ -5,9 +5,9 @@ import com.immich.server.model.ErrorResponse
 import com.immich.server.platform.Logger
 import com.immich.server.platform.PlatformFileStorage
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveMultipart
-import io.ktor.server.request.PartData
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
