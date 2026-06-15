@@ -7,6 +7,7 @@ import com.immich.server.platform.PlatformFileStorage
 import io.ktor.http.*
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveMultipart
+import io.ktor.server.request.PartData
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.Route
@@ -44,46 +45,48 @@ fun Route.assetRoutes(fileStorage: PlatformFileStorage) {
                 var filename: String? = null
                 var fileData: ByteArray? = null
                 
-                // Parse multipart parts
-                multipart.readAllParts().forEach { part ->
+                // Parse multipart parts using forEachPart
+                multipart.forEachPart { part ->
                     when (part.name) {
                         "deviceAssetId" -> {
-                            if (part is io.ktor.server.request.PartData.FormItem) {
+                            if (part is PartData.FormItem) {
                                 deviceAssetId = part.value
                             }
                         }
                         "deviceId" -> {
-                            if (part is io.ktor.server.request.PartData.FormItem) {
+                            if (part is PartData.FormItem) {
                                 deviceId = part.value
                             }
                         }
                         "fileCreatedAt" -> {
-                            if (part is io.ktor.server.request.PartData.FormItem) {
+                            if (part is PartData.FormItem) {
                                 fileCreatedAt = part.value
                             }
                         }
                         "fileModifiedAt" -> {
-                            if (part is io.ktor.server.request.PartData.FormItem) {
+                            if (part is PartData.FormItem) {
                                 fileModifiedAt = part.value
                             }
                         }
                         "isFavorite" -> {
-                            if (part is io.ktor.server.request.PartData.FormItem) {
+                            if (part is PartData.FormItem) {
                                 isFavorite = part.value.toBoolean()
                             }
                         }
                         "duration" -> {
-                            if (part is io.ktor.server.request.PartData.FormItem) {
+                            if (part is PartData.FormItem) {
                                 duration = part.value
                             }
                         }
                         "assetData" -> {
-                            if (part is io.ktor.server.request.PartData.FileItem) {
+                            if (part is PartData.FileItem) {
                                 filename = part.originalFileName ?: "unknown"
                                 fileData = part.streamProvider().readBytes()
                             }
                         }
                     }
+                    // Dispose part after processing
+                    part.dispose()
                 }
                 
                 // Validate required fields
@@ -232,7 +235,6 @@ fun Route.assetRoutes(fileStorage: PlatformFileStorage) {
                 "jpg", "jpeg" -> ContentType.Image.JPEG
                 "png" -> ContentType.Image.PNG
                 "gif" -> ContentType.Image.GIF
-                "webp" -> ContentType.Image.WebP
                 "mp4" -> ContentType.Video.MP4
                 "mov" -> ContentType.Video.QuickTime
                 else -> ContentType.Application.OctetStream
