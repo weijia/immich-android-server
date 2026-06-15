@@ -36,6 +36,7 @@ kotlin {
                 implementation(libs.ktor.server.status.pages)
                 implementation(libs.ktor.server.cors)
                 implementation(libs.ktor.network)
+                implementation(libs.ktor.server.multipart)
 
                 // SQLDelight
                 implementation(libs.sqldelight.runtime)

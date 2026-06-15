@@ -15,6 +15,12 @@ actual class PlatformFileStorage {
         val urls = fileManager.URLsForDirectory(NSDocumentDirectory, NSUserDomainMask)
         return (urls.first() as platform.Foundation.NSURL).path ?: NSHomeDirectory()
     }
+    
+    private fun getUploadDirectory(): String {
+        val uploadDir = "${getDocumentsDirectory()}/Immich/uploads"
+        fileManager.createDirectoryAtPath(uploadDir, true, null, null)
+        return uploadDir
+    }
 
     actual fun saveFile(path: String, data: ByteArray) {
         val fullPath = "${getDocumentsDirectory()}/$path"
@@ -40,6 +46,52 @@ actual class PlatformFileStorage {
     actual fun fileExists(path: String): Boolean {
         val fullPath = "${getDocumentsDirectory()}/$path"
         return fileManager.fileExistsAtPath(fullPath)
+    }
+    
+    actual fun saveAsset(assetId: String, filename: String, data: ByteArray): String {
+        val uploadDir = getUploadDirectory()
+        val now = kotlinx.datetime.Clock.System.now()
+        val localDateTime = kotlinx.datetime.LocalDateTime.parse(now.toString())
+        val yearMonthDir = "$uploadDir/${localDateTime.year}/${localDateTime.monthNumber.toString().padStart(2, '0')}"
+        fileManager.createDirectoryAtPath(yearMonthDir, true, null, null)
+        
+        val fullPath = "$yearMonthDir/$assetId-$filename"
+        val nsData = data.toNSData()
+        nsData.writeToFile(fullPath, atomically = true)
+        
+        return fullPath
+    }
+    
+    actual fun getAssetPath(assetId: String): String? {
+        val uploadDir = getUploadDirectory()
+        // Recursively search for asset
+        val contents = fileManager.contentsOfDirectoryAtPath(uploadDir, null) ?: return null
+        
+        for (item in contents) {
+            val itemName = (item as String)
+            if (itemName.startsWith(assetId)) {
+                return "$uploadDir/$itemName"
+            }
+        }
+        return null
+    }
+    
+    actual fun deleteAsset(assetId: String): Boolean {
+        val path = getAssetPath(assetId)
+        if (path != null) {
+            fileManager.removeItemAtPath(path, null)
+            return true
+        }
+        return false
+    }
+    
+    actual fun getAssetSize(assetId: String): Long {
+        val path = getAssetPath(assetId)
+        if (path != null) {
+            val attributes = fileManager.attributesOfItemAtPath(path, null)
+            return (attributes?.get("NSFileSize") as? Long) ?: 0L
+        }
+        return 0L
     }
 }
 

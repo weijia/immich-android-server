@@ -58,3 +58,9 @@ data class AssetExistence(
     val deviceAssetId: String,
     val exists: Boolean
 )
+
+@Serializable
+data class AssetUploadResponse(
+    val id: String,
+    val duplicate: Boolean = false
+)

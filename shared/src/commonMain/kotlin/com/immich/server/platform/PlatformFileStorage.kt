@@ -10,4 +10,10 @@ expect class PlatformFileStorage {
     fun deleteFile(path: String)
     fun getStoragePath(): String
     fun fileExists(path: String): Boolean
+    
+    // Asset-specific methods
+    fun saveAsset(assetId: String, filename: String, data: ByteArray): String  // Returns file path
+    fun getAssetPath(assetId: String): String?
+    fun deleteAsset(assetId: String): Boolean
+    fun getAssetSize(assetId: String): Long
 }

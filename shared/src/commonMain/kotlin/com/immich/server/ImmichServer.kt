@@ -5,6 +5,7 @@ import com.immich.server.api.serverInfoRoutes
 import com.immich.server.api.wellKnownRoutes
 import com.immich.server.api.tokenExchangeRoutes
 import com.immich.server.api.syncRoutes
+import com.immich.server.api.assetRoutes
 import com.immich.server.db.ImmichDatabase
 import com.immich.server.discovery.DiscoveryServer
 import com.immich.server.platform.Logger
@@ -101,7 +102,8 @@ class ImmichServer(
                     authRoutes(authService)
                     tokenExchangeRoutes(serverConfigService, authService)
                     syncRoutes()
-                    // TODO: Add assets, albums routes
+                    assetRoutes(fileStorage)
+                    // TODO: Add albums routes
                 }
             }
         }.start(wait = false)
