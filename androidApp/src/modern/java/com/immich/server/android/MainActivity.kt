@@ -29,8 +29,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Power
-import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -289,10 +288,9 @@ fun BatteryStatusCard(
                     Icon(
                         imageVector = when {
                             batteryState.isOvercharging -> Icons.Default.Warning
-                            batteryState.isFull && batteryState.isCharging -> Icons.Default.CheckCircle
                             batteryState.isFull -> Icons.Default.CheckCircle
-                            batteryState.isCharging -> Icons.Default.Power
-                            else -> Icons.Default.FlashOn
+                            batteryState.isCharging -> Icons.Default.Info
+                            else -> Icons.Default.Info
                         },
                         contentDescription = "Battery",
                         tint = iconColor,
