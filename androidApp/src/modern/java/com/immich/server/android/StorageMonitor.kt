@@ -111,7 +111,7 @@ class StorageMonitor(private val context: Context) {
         
         val units = arrayOf("B", "KB", "MB", "GB", "TB")
         val unitIndex = (Math.log10(bytes.toDouble()) / Math.log10(1024.0)).toInt()
-        val unitIndexClamped = unitIndex.coerceIn(0, units.length - 1)
+        val unitIndexClamped = unitIndex.coerceIn(0, units.size - 1)
         
         val size = bytes / Math.pow(1024.0, unitIndexClamped.toDouble())
         
