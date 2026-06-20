@@ -18,6 +18,9 @@ class ImmichServerApplication : Application() {
 
     lateinit var server: ImmichServer
         private set
+    
+    lateinit var batteryMonitor: BatteryMonitor
+        private set
 
     override fun onCreate() {
         super.onCreate()
@@ -32,6 +35,11 @@ class ImmichServerApplication : Application() {
         Log.d(TAG, "Initializing BuildInfo")
         BuildInfo.initialize(this)
         Log.i(TAG, "Version: ${BuildInfo.display}")
+
+        // Initialize battery monitor
+        Log.d(TAG, "Initializing BatteryMonitor")
+        batteryMonitor = BatteryMonitor(this)
+        batteryMonitor.start()
 
         Log.d(TAG, "Creating platform components")
         val driverFactory = PlatformDatabaseDriverFactory(this)

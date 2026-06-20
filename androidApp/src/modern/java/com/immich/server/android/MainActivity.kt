@@ -25,9 +25,15 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.BatteryAlert
+import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.BatteryFull
+import androidx.compose.material.icons.filled.BatteryStd
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -60,6 +66,7 @@ import androidx.compose.ui.unit.sp
 import com.immich.server.android.ui.theme.ImmichServerTheme
 import com.immich.server.platform.Logger
 import kotlinx.coroutines.delay
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
 
@@ -114,6 +121,17 @@ fun ServerControlScreen(onViewLogs: () -> Unit) {
     val app = ImmichServerApplication.instance
     var serverStatus by remember { mutableStateOf(if (app.server.isRunning()) "Running" else "Stopped") }
     var serverUrl by remember { mutableStateOf("") }
+    
+    // Battery state
+    var batteryState by remember { mutableStateOf(app.batteryMonitor.batteryState.value) }
+    
+    // Update battery state periodically
+    LaunchedEffect(Unit) {
+        while (true) {
+            batteryState = app.batteryMonitor.batteryState.value
+            delay(1000) // Update every second
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -134,6 +152,15 @@ fun ServerControlScreen(onViewLogs: () -> Unit) {
         )
 
         Spacer(modifier = Modifier.height(12.dp))
+
+        // Battery Status Card
+        BatteryStatusCard(batteryState, app.batteryMonitor)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        HorizontalDivider()
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = "Status: $serverStatus",
@@ -209,6 +236,155 @@ fun ServerControlScreen(onViewLogs: () -> Unit) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("View Logs")
+        }
+    }
+}
+
+@Composable
+fun BatteryStatusCard(
+    batteryState: BatteryMonitor.BatteryState,
+    batteryMonitor: BatteryMonitor
+) {
+    // Determine card color based on overcharging status
+    val cardColor = when {
+        batteryState.isOvercharging && TimeUnit.MILLISECONDS.toHours(batteryState.timeSinceFullMillis) >= 4 ->
+            Color(0xFFFFEBEE) // Red background for severe overcharge
+        batteryState.isOvercharging ->
+            Color(0xFFFFF8E1) // Yellow background for warning
+        batteryState.isFull && batteryState.isCharging ->
+            Color(0xFFE8F5E9) // Light green for full and charging
+        else ->
+            MaterialTheme.colorScheme.surfaceVariant
+    }
+    
+    val iconColor = when {
+        batteryState.isOvercharging && TimeUnit.MILLISECONDS.toHours(batteryState.timeSinceFullMillis) >= 4 ->
+            Color(0xFFF44336) // Red
+        batteryState.isOvercharging ->
+            Color(0xFFFF9800) // Orange
+        batteryState.isFull && batteryState.isCharging ->
+            Color(0xFF4CAF50) // Green
+        batteryState.isCharging ->
+            Color(0xFF2196F3) // Blue
+        else ->
+            MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = cardColor)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // Header row with icon and level
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = when {
+                            batteryState.isOvercharging -> Icons.Default.BatteryAlert
+                            batteryState.isFull && batteryState.isCharging -> Icons.Default.BatteryChargingFull
+                            batteryState.isFull -> Icons.Default.BatteryFull
+                            batteryState.isCharging -> Icons.Default.BatteryChargingFull
+                            else -> Icons.Default.BatteryStd
+                        },
+                        contentDescription = "Battery",
+                        tint = iconColor,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+                    
+                    Text(
+                        text = "${batteryState.level}%",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = iconColor
+                    )
+                    
+                    if (batteryState.isCharging) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "⚡",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = iconColor
+                        )
+                    }
+                }
+                
+                // Temperature
+                Text(
+                    text = "${batteryState.temperature}°C",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (batteryState.temperature > 40) Color(0xFFF44336) 
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            // Charging type
+            if (batteryState.isCharging) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "充电方式: ${batteryState.chargeType}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            // Time since full charge - the key feature
+            if (batteryState.isFull && batteryState.isCharging && batteryState.timeSinceFullMillis > 0) {
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                val timeSinceFull = batteryMonitor.formatDuration(batteryState.timeSinceFullMillis)
+                val warningMessage = batteryMonitor.getOverchargeWarning(batteryState.timeSinceFullMillis)
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "已充满时间: ",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    Text(
+                        text = timeSinceFull,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = iconColor
+                    )
+                }
+                
+                if (warningMessage.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = warningMessage,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (TimeUnit.MILLISECONDS.toHours(batteryState.timeSinceFullMillis) >= 4) 
+                                Color(0xFFF44336) 
+                                else Color(0xFFFF9800)
+                    )
+                }
+            }
+            
+            // Battery health warning
+            if (batteryState.health != "Good" && batteryState.health != "Unknown") {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "电池状态: ${batteryState.health}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFFF44336)
+                )
+            }
         }
     }
 }
