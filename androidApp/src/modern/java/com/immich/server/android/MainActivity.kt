@@ -30,12 +30,15 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -124,12 +127,22 @@ fun ServerControlScreen(onViewLogs: () -> Unit) {
     // Battery state
     var batteryState by remember { mutableStateOf(app.batteryMonitor.batteryState.value) }
     
-    // Update battery state periodically
+    // Storage state
+    var storageState by remember { mutableStateOf(app.storageMonitor.storageState.value) }
+    
+    // Update states periodically
     LaunchedEffect(Unit) {
         while (true) {
             batteryState = app.batteryMonitor.batteryState.value
+            storageState = app.storageMonitor.storageState.value
             delay(1000) // Update every second
         }
+    }
+    
+    // Update storage state when server status changes
+    LaunchedEffect(serverStatus) {
+        app.storageMonitor.update()
+        storageState = app.storageMonitor.storageState.value
     }
 
     Column(
@@ -154,6 +167,11 @@ fun ServerControlScreen(onViewLogs: () -> Unit) {
 
         // Battery Status Card
         BatteryStatusCard(batteryState, app.batteryMonitor)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Storage Status Card
+        StorageStatusCard(storageState, app.storageMonitor)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -381,6 +399,168 @@ fun BatteryStatusCard(
                     text = "电池状态: ${batteryState.health}",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFFF44336)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun StorageStatusCard(
+    storageState: StorageMonitor.StorageState,
+    storageMonitor: StorageMonitor
+) {
+    // Determine card color based on storage status
+    val cardColor = when {
+        storageState.isCriticalSpace ->
+            Color(0xFFFFEBEE) // Red background for critical
+        storageState.isLowSpace ->
+            Color(0xFFFFF8E1) // Yellow background for warning
+        else ->
+            MaterialTheme.colorScheme.surfaceVariant
+    }
+    
+    val progressColor = when {
+        storageState.usedPercentage >= 95 ->
+            Color(0xFFF44336) // Red
+        storageState.usedPercentage >= 90 ->
+            Color(0xFFFF9800) // Orange
+        storageState.usedPercentage >= 80 ->
+            Color(0xFF4CAF50) // Green (still okay)
+        else ->
+            Color(0xFF2196F3) // Blue (good)
+    }
+    
+    val iconColor = when {
+        storageState.isCriticalSpace -> Color(0xFFF44336)
+        storageState.isLowSpace -> Color(0xFFFF9800)
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = cardColor)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // Header row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = if (storageState.isCriticalSpace || storageState.isLowSpace) 
+                            Icons.Default.Warning 
+                            else Icons.Default.Storage,
+                        contentDescription = "Storage",
+                        tint = iconColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    Text(
+                        text = "存储空间",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                
+                Text(
+                    text = "${storageState.usedPercentage}%",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = progressColor
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Progress bar
+            LinearProgressIndicator(
+                progress = { storageState.usedPercentage / 100f },
+                modifier = Modifier.fillMaxWidth(),
+                color = progressColor,
+                trackColor = Color(0xFFE0E0E0),
+                strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Storage details
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "已用: ${storageMonitor.formatSize(storageState.usedSpace)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "可用: ${storageMonitor.formatSize(storageState.freeSpace)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "总计: ${storageMonitor.formatSize(storageState.totalSpace)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Immich: ${storageMonitor.formatSize(storageState.immichUsedSpace)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            
+            // Estimated capacity
+            if (storageState.freeSpace > 0) {
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Folder,
+                        contentDescription = "Capacity",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    Text(
+                        text = storageMonitor.getStorageRecommendation(storageState),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            // Warning message
+            val warningMessage = storageMonitor.getSpaceWarning(storageState)
+            if (warningMessage.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = warningMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (storageState.isCriticalSpace) Color(0xFFF44336) else Color(0xFFFF9800)
                 )
             }
         }
