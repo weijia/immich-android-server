@@ -30,8 +30,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.SdCard
-import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -456,7 +454,7 @@ fun StorageStatusCard(
                     Icon(
                         imageVector = if (storageState.isCriticalSpace || storageState.isLowSpace) 
                             Icons.Default.Warning 
-                            else Icons.Default.SdCard,
+                            else Icons.Default.Info,
                         contentDescription = "Storage",
                         tint = iconColor,
                         modifier = Modifier.size(24.dp)
@@ -535,7 +533,7 @@ fun StorageStatusCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Photo,
+                        imageVector = Icons.Default.CheckCircle,
                         contentDescription = "Capacity",
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
