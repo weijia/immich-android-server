@@ -25,12 +25,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.BatteryAlert
-import androidx.compose.material.icons.filled.BatteryChargingFull
-import androidx.compose.material.icons.filled.BatteryFull
-import androidx.compose.material.icons.filled.BatteryStd
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.rounded.BatteryChargingFull
+import androidx.compose.material.icons.rounded.BatteryFull
+import androidx.compose.material.icons.rounded.BatteryStd
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -288,11 +289,11 @@ fun BatteryStatusCard(
                 ) {
                     Icon(
                         imageVector = when {
-                            batteryState.isOvercharging -> Icons.Default.BatteryAlert
-                            batteryState.isFull && batteryState.isCharging -> Icons.Default.BatteryChargingFull
-                            batteryState.isFull -> Icons.Default.BatteryFull
-                            batteryState.isCharging -> Icons.Default.BatteryChargingFull
-                            else -> Icons.Default.BatteryStd
+                            batteryState.isOvercharging -> Icons.Default.Warning
+                            batteryState.isFull && batteryState.isCharging -> Icons.Rounded.BatteryChargingFull
+                            batteryState.isFull -> Icons.Rounded.BatteryFull
+                            batteryState.isCharging -> Icons.Rounded.BatteryChargingFull
+                            else -> Icons.Rounded.BatteryStd
                         },
                         contentDescription = "Battery",
                         tint = iconColor,
